@@ -4,6 +4,7 @@ const cors=require("cors");
 
 const db=require("./models/db")
 const users=require("./models/userSchema");
+const querySchema = require('./models/querySchema');
 const app=express();
 
 app.use(cors({
@@ -47,9 +48,21 @@ app.post('/signup',(req,res)=>{
     //         user.save(user)
     //     }
     // }
-    user.save(user)
+    user.save()
     // console.log(email+" "+uname+" "+password);
 })
+app.post('/addQuery', async (req, res) => {
+  try {
+    console.log(req.body);
+    const query = new querySchema(req.body);
+    const savedQuery = await query.save(); 
+    res.status(200).json({ msg: "success", data: savedQuery });
+  } catch (error) {
+    console.error("Error saving query:", error);
+    res.status(500).json({ msg: "error", error: error.message });
+  }
+});
+
 app.listen(port,()=>{
     console.log(`Server is Running at port : ${port}`);
 })
