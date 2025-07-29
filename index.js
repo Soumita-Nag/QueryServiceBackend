@@ -62,6 +62,24 @@ app.post('/addQuery', async (req, res) => {
     res.status(500).json({ msg: "error", error: error.message });
   }
 });
+app.get('/getAllQuery', async(req,res)=>{
+    try {
+        const queries = await querySchema.find(); 
+        res.status(200).json(queries);
+    } catch (err) {
+        res.status(500).json({ msg: "Failed to fetch queries", error: err });
+    }
+})
+app.get('/getQuery', async(req,res)=>{
+    const userId=req.query.userId;
+    console.log("user: "+userId)
+    try {
+        const queries = await querySchema.find({userId:userId}); 
+        res.status(200).json(queries);
+    } catch (err) {
+        res.status(500).json({ msg: "Failed to fetch queries", error: err });
+    }
+})
 
 app.listen(port,()=>{
     console.log(`Server is Running at port : ${port}`);
