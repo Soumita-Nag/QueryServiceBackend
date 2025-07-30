@@ -64,7 +64,7 @@ app.post('/addQuery', async (req, res) => {
 });
 app.get('/getAllQuery', async(req,res)=>{
     try {
-        const queries = await querySchema.find().sort({_id: -1})    ; 
+        const queries = await querySchema.find();    
         res.status(200).json(queries);
     } catch (err) {
         res.status(500).json({ msg: "Failed to fetch queries", error: err });
@@ -74,7 +74,7 @@ app.get('/getQuery', async(req,res)=>{
     const userId=req.query.userId;
     console.log("user: "+userId)    
     try {
-        const queries = await querySchema.find({userId:userId}).sort({_id: -1}); 
+        const queries = await querySchema.find({userId:userId}); 
         res.status(200).json(queries);
     } catch (err) {
         res.status(500).json({ msg: "Failed to fetch queries", error: err });
