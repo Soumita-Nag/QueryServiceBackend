@@ -5,7 +5,6 @@ const queryAdminSchema=new mongoose.Schema({
     answer: String,
     date: String,
     time: String,
-    status: String,
     rank: Number,
 })
-module.exports=mongoose.model('queries',querySchema);
+module.exports=mongoose.model('answers',queryAdminSchema);

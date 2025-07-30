@@ -5,6 +5,7 @@ const cors=require("cors");
 const db=require("./models/db")
 const users=require("./models/userSchema");
 const querySchema = require('./models/querySchema');
+const queryAdminSchema = require('./models/queryAdminSchema');
 const app=express();
 
 app.use(cors({
@@ -80,6 +81,18 @@ app.get('/getQuery', async(req,res)=>{
         res.status(500).json({ msg: "Failed to fetch queries", error: err });
     }
 })
+app.post('/postAnswer',async(req,res)=>{
+    // console.log(req.body);
+    try {
+        const answer = new queryAdminSchema(req.body);
+        const savedAnswer = await answer.save(); 
+        res.status(200).json({ msg: "success", data: savedAnswer });
+    } catch (error) {
+        console.error("Error saving Answer:", error);
+        res.status(500).json({ msg: "error", error: error.message });
+    }
+})
+
 
 app.listen(port,()=>{
     console.log(`Server is Running at port : ${port}`);
