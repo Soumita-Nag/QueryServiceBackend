@@ -65,22 +65,59 @@ app.post('/addQuery', async (req, res) => {
 });
 app.get('/getAllQuery', async(req,res)=>{
     try {
-        const queries = await querySchema.find();    
-        res.status(200).json(queries);
+        const queries = await querySchema.find().lean();    
+        const answes=await queryAdminSchema.find().lean();
+        const answerMap={};
+        for(const ans of answes){
+          answerMap[ans.queryId]=ans;
+        }
+        const combined=queries.map(query=>{
+          const answer=answerMap[query.queryId];
+          return {
+            ...query,
+            answer: answer?.answer,
+            adminId: answer?.adminId,
+            answerDate: answer?.date,
+            answerTime: answer?.time,
+            answerRank: answer?.rank,
+          };
+        });
+        res.status(200).json(combined);
     } catch (err) {
         res.status(500).json({ msg: "Failed to fetch queries", error: err });
     }
 })
-app.get('/getQuery', async(req,res)=>{
-    const userId=req.query.userId;
-    console.log("user: "+userId)    
-    try {
-        const queries = await querySchema.find({userId:userId}); 
-        res.status(200).json(queries);
-    } catch (err) {
-        res.status(500).json({ msg: "Failed to fetch queries", error: err });
+app.get('/getQuery', async (req, res) => {
+  const userId = req.query.userId;
+  console.log("user: " + userId);
+
+  try {
+    const queries = await querySchema.find({ userId: userId });
+    const queryIds = queries.map(q => q.queryId);
+    const answers = await queryAdminSchema.find({ queryId: { $in: queryIds } });
+    const answerMap = {};
+    for (const ans of answers) {
+      answerMap[ans.queryId] = ans;
     }
-})
+    const combined = queries.map(query => {
+      const answer = answerMap[query.queryId];
+      return {
+        ...query._doc,  
+        answer: answer?.answer,
+        adminId: answer?.adminId,
+        answerDate: answer?.date,
+        answerTime: answer?.time,
+        answerRank: answer?.rank,
+      };
+    });
+
+    res.status(200).json(combined);
+  } catch (err) {
+    console.error("Error fetching user's queries:", err);
+    res.status(500).json({ msg: "Failed to fetch queries", error: err });
+  }
+});
+
 app.post('/postAnswer',async(req,res)=>{
     // console.log(req.body);
     try {
