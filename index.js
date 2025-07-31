@@ -92,8 +92,30 @@ app.post('/postAnswer',async(req,res)=>{
         res.status(500).json({ msg: "error", error: error.message });
     }
 })
-
-
+app.get('/getUnAnsweredQueries',async(req,res)=>{
+  try{
+    const answeredQueryIds=await queryAdminSchema.distinct('queryId');
+    const unAnsweredQueries=await querySchema.find({
+      queryId:{$nin:answeredQueryIds}
+    })
+    res.status(200).json(unAnsweredQueries);
+  }
+  catch(err){
+    res.status(500).json({msg:"Error fetching unanswered queries"});
+  }
+})
+app.get('/getAnsweredQueries',async(req,res)=>{
+  try{
+    const answeredQueryIds=await queryAdminSchema.distinct('queryId');
+    const unAnsweredQueries=await querySchema.find({
+      queryId:{$in:answeredQueryIds}
+    })
+    res.status(200).json(unAnsweredQueries);
+  }
+  catch(err){
+    res.status(500).json({msg:"Error fetching unanswered queries"});
+  }
+})
 app.listen(port,()=>{
     console.log(`Server is Running at port : ${port}`);
 })
