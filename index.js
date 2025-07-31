@@ -86,6 +86,10 @@ app.post('/postAnswer',async(req,res)=>{
     try {
         const answer = new queryAdminSchema(req.body);
         const savedAnswer = await answer.save(); 
+        await querySchema.updateOne(
+          {queryId:req.body.queryId},
+          {$inc: {ansCount:1}}
+        );
         res.status(200).json({ msg: "success", data: savedAnswer });
     } catch (error) {
         console.error("Error saving Answer:", error);
@@ -104,18 +108,34 @@ app.get('/getUnAnsweredQueries',async(req,res)=>{
     res.status(500).json({msg:"Error fetching unanswered queries"});
   }
 })
-app.get('/getAnsweredQueries',async(req,res)=>{
-  try{
-    const answeredQueryIds=await queryAdminSchema.distinct('queryId');
-    const unAnsweredQueries=await querySchema.find({
-      queryId:{$in:answeredQueryIds}
-    })
-    res.status(200).json(unAnsweredQueries);
+app.get('/getAnsweredQueries', async (req, res) => {
+  try {
+    const answeredQueryIds = await queryAdminSchema.distinct('queryId');
+    const queries = await querySchema.find({ queryId: { $in: answeredQueryIds } }).lean();
+    const answers = await queryAdminSchema.find({ queryId: { $in: answeredQueryIds } }).lean();
+    const answerMap = {};
+    for (const ans of answers) {
+      answerMap[ans.queryId] = ans;
+    }
+    const combined = queries.map(query => {
+      const answer = answerMap[query.queryId];
+      return {
+        ...query,
+        answer: answer?.answer,
+        adminId: answer?.adminId,
+        answerDate: answer?.date,
+        answerTime: answer?.time,
+        answerRank: answer?.rank,
+      };
+    });
+
+    res.status(200).json(combined);
+  } catch (err) {
+    console.error('Error fetching answered queries:', err);
+    res.status(500).json({ msg: 'Error fetching answered queries', error: err });
   }
-  catch(err){
-    res.status(500).json({msg:"Error fetching unanswered queries"});
-  }
-})
+});
+
 app.listen(port,()=>{
     console.log(`Server is Running at port : ${port}`);
 })
