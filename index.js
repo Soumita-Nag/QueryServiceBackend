@@ -25,11 +25,11 @@ app.post('/login',async(req,res)=>{
     try{
         const result=await users.findOne({email:email});
         if(!result){
-           return res.status(401).json({msg:"User doesn't exist"});
+           return res.status(201).json({msg:"User doesn't exist"});
           }
           const isMatch=await bcrypt.compare(password,result.password);
         if(!isMatch){ 
-            return res.status(401).json({msg:"Wrong Password"});
+            return res.status(201).json({msg:"Wrong Password"});
         }
         res.status(200).json(result);
     }catch(err){
@@ -38,7 +38,7 @@ app.post('/login',async(req,res)=>{
     }
 })
 app.post('/signup',async(req,res)=>{
-    const {uname,email,password}=req.body;
+    const {uname,email,password,role}=req.body;
     try{
       const result=await users.findOne({email});
       if(result){
@@ -49,6 +49,7 @@ app.post('/signup',async(req,res)=>{
         uname,
         email,
         password:hashPassword,
+        role
       });
       await user.save();
       res.status(200).json({msg:"User added successfully"});
