@@ -9,6 +9,9 @@ const queryAdminSchema = require('./models/queryAdminSchema');
 const userSchema = require('./models/userSchema');
 const app=express();
 
+const bcrypt = require('bcrypt');
+const SALT_ROUNDS = 10;
+
 app.use(cors({
     origin: 'http://localhost:5173'
 }))
@@ -18,34 +21,37 @@ const port=8000;
 app.post('/login',async(req,res)=>{
     const email=req.body.email;
     const password=req.body.password;
-    console.log(email+" "+password);    
-    const query={
-        email:email,
-        password:password,
-    }
+    console.log(email+" "+password);   
     try{
-        const result=await users.find(query);
-        if(result.length!=0){
-            res.status(200).json(result);
+        const result=await users.findOne({email:email});
+        if(!result){
+           return res.status(401).json({msg:"User doesn't exist"});
+          }
+          const isMatch=await bcrypt.compare(password,result.password);
+        if(!isMatch){ 
+            return res.status(401).json({msg:"Wrong Password"});
         }
-        else{
-            res.status(201).json({msg:"User doesn't exist"});
-        }
+        res.status(200).json(result);
     }catch(err){
-        res.status(400).json({msg:err});
+      console.log(err);
+        res.status(400).json(err);
     }
 })
 app.post('/signup',async(req,res)=>{
-    const email=req.body.email  ;
-    const user=new users(req.body);
+    const {uname,email,password}=req.body;
     try{
-        const result=await users.findOne({email});
-        if(result){
-            return res.status(400).json({msg:"User Already Exists"});
-        }
-        const user=new userSchema(req.body)
-        await user.save();
-        res.status(200).json({msg:"User added successfully"});
+      const result=await users.findOne({email});
+      if(result){
+        return res.status(400).json({msg:"User Already Exists"});
+      }
+      const hashPassword= await bcrypt.hash(password,SALT_ROUNDS);
+      const user=new users({
+        uname,
+        email,
+        password:hashPassword,
+      });
+      await user.save();
+      res.status(200).json({msg:"User added successfully"});
     }
     catch(err){
       console.error("Signup error:", err);
@@ -90,7 +96,7 @@ app.get('/getAllQuery', async(req,res)=>{
 })
 app.get('/getQuery', async (req, res) => {
   const userId = req.query.userId;
-  console.log("user: " + userId);
+  // console.log("user: " + userId);
 
   try {
     const queries = await querySchema.find({ userId: userId });
