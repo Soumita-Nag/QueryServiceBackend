@@ -6,6 +6,7 @@ const db=require("./models/db")
 const users=require("./models/userSchema");
 const querySchema = require('./models/querySchema');
 const queryAdminSchema = require('./models/queryAdminSchema');
+const userSchema = require('./models/userSchema');
 const app=express();
 
 app.use(cors({
@@ -34,22 +35,22 @@ app.post('/login',async(req,res)=>{
         res.status(400).json({msg:err});
     }
 })
-app.post('/signup',(req,res)=>{
-    // const uname=req.body.uname;
-    // const email=req.body.email;
-    // const password=req.body.password;
+app.post('/signup',async(req,res)=>{
+    const email=req.body.email  ;
     const user=new users(req.body);
-    // const query={
-    //     email:req.body.email,
-    //     password:req.body.password
-    // }
-    // try{
-    //     const result=users.find(query);
-    //     if(result.length==0){
-    //         user.save(user)
-    //     }
-    // }
-    user.save()
+    try{
+        const result=await users.findOne({email});
+        if(result){
+            return res.status(400).json({msg:"User Already Exists"});
+        }
+        const user=new userSchema(req.body)
+        await user.save();
+        res.status(200).json({msg:"User added successfully"});
+    }
+    catch(err){
+      console.error("Signup error:", err);
+      res.status(500).json({ msg: "Server error during signup", error: err.message });
+    }
     // console.log(email+" "+uname+" "+password);
 })
 app.post('/addQuery', async (req, res) => {
@@ -125,7 +126,10 @@ app.post('/postAnswer',async(req,res)=>{
         const savedAnswer = await answer.save(); 
         await querySchema.updateOne(
           {queryId:req.body.queryId},
-          {$inc: {ansCount:1}}
+          {
+            $inc: {ansCount:1},
+            $set: {status:'success'}
+          }
         );
         res.status(200).json({ msg: "success", data: savedAnswer });
     } catch (error) {
