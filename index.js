@@ -1,6 +1,9 @@
 const express=require('express');
 const mongoose=require('mongoose');
 const cors=require("cors");
+const dotenv=require('dotenv');
+dotenv.config();
+const port=process.env.PORT || 8000;
 
 const db=require("./models/db")
 const users=require("./models/userSchema");
@@ -16,7 +19,6 @@ app.use(cors({
     origin: 'http://localhost:5173'
 }))
 app.use(express.json());
-const port=8000;
 
 app.post('/login',async(req,res)=>{
     const email=req.body.email;

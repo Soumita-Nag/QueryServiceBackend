@@ -1,6 +1,9 @@
 const mongoose=require("mongoose");
+const dotenv=require('dotenv');
+dotenv.config();
+const mongodbUrl=process.env.MONGODB_URL
 mongoose.connect(
-    "mongodb://localhost:27017/QueryService"
+    mongodbUrl
 ).then(()=>{
     console.log("connected");
 }).catch((err)=>{
