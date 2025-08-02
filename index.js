@@ -16,7 +16,7 @@ const bcrypt = require('bcrypt');
 const SALT_ROUNDS = 10;
 
 app.use(cors({
-    origin: 'http://localhost:5173'
+    origin: 'https://askhive.netlify.app/'
 }))
 app.use(express.json());
 
