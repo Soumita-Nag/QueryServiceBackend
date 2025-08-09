@@ -16,7 +16,8 @@ const bcrypt = require('bcrypt');
 const SALT_ROUNDS = 10;
 
 app.use(cors({
-    origin: 'https://askhive.soumita.xyz'
+    // origin: 'https://askhive.soumita.xyz'
+    origin: 'http://localhost:5173'
 }))
 app.use(express.json());
 
@@ -62,6 +63,19 @@ app.post('/signup',async(req,res)=>{
     }
     // console.log(email+" "+uname+" "+password);
 })
+app.delete('/delQuery', async (req, res) => {
+  try {
+    const queryId=req.query.queryId;
+    const result= await querySchema.deleteOne({queryId:queryId});
+    if(result.deletedCount===0){
+      return res.status(404).json({msg:"Query not found"})
+    }
+    res.status(200).json({ msg: "successfully deleted"});
+  } catch (error) {
+    console.error("Error deleting query:", error);
+    res.status(500).json({ msg: "error", error: error.message });
+  }
+});
 app.post('/addQuery', async (req, res) => {
   try {
     console.log(req.body);
