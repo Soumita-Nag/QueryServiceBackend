@@ -67,7 +67,8 @@ app.delete('/delQuery', async (req, res) => {
   try {
     const queryId=req.query.queryId;
     const result= await querySchema.deleteOne({queryId:queryId});
-    if(result.deletedCount===0){
+    const finalResult= await queryAdminSchema.deleteMany({queryId:queryId})
+    if(result.deletedCount===0 || finalResult.deletedCount===0){
       return res.status(404).json({msg:"Query not found"})
     }
     res.status(200).json({ msg: "successfully deleted"});
