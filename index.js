@@ -117,7 +117,7 @@ app.post('/addQuery', async (req, res) => {
 });
 app.get('/getAllQuery', async(req,res)=>{
     try {
-        const queries = await querySchema.find().lean();    
+        const queries = await querySchema.find({ status: { $ne: 'blocked' } }).lean();    
         const answes=await queryAdminSchema.find().lean();
         const answerMap={};
         for(const ans of answes){
@@ -193,9 +193,10 @@ app.post('/postAnswer',async(req,res)=>{
 app.get('/getUnAnsweredQueries',async(req,res)=>{
   try{
     const answeredQueryIds=await queryAdminSchema.distinct('queryId');
-    const unAnsweredQueries=await querySchema.find({
-      queryId:{$nin:answeredQueryIds}
-    })
+    const unAnsweredQueries=await querySchema.find(
+    {queryId:{$nin:answeredQueryIds},
+     status: { $ne: 'blocked' } }
+    )
     res.status(200).json(unAnsweredQueries);
   }
   catch(err){
@@ -205,7 +206,7 @@ app.get('/getUnAnsweredQueries',async(req,res)=>{
 app.get('/getAnsweredQueries', async (req, res) => {
   try {
     const answeredQueryIds = await queryAdminSchema.distinct('queryId');
-    const queries = await querySchema.find({ queryId: { $in: answeredQueryIds } }).lean();
+    const queries = await querySchema.find({ queryId: { $in: answeredQueryIds },status: { $ne: 'blocked' } }).lean();
     const answers = await queryAdminSchema.find({ queryId: { $in: answeredQueryIds } }).lean();
     const answerMap = {};
     for (const ans of answers) {
@@ -260,6 +261,7 @@ app.get('/blockQuery',async(req,res)=>{
     res.status(500).json({ msg: "error", error: error.message });
   }
 })
+
 app.listen(port,()=>{
     console.log(`Server is Running at port : ${port}`);
 })
