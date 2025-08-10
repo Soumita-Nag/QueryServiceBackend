@@ -13,6 +13,7 @@ const userSchema = require('./models/userSchema');
 const app=express();
 
 const bcrypt = require('bcrypt');
+const req = require('express/lib/request');
 const SALT_ROUNDS = 10;
 
 app.use(cors({
@@ -236,10 +237,27 @@ app.get('/getAnswers',async(req,res)=>{
     if(result.length===0){
       res.status(404).json({msg:"Answers does not exists"});
     }
+    else
     res.status(200).json(result);
   }
   catch(err){
     res.status(500).json({msg:"Error Fetching Answers"});
+  }
+})
+app.get('/blockQuery',async(req,res)=>{
+  try {
+    const queryId=req.query.queryId;
+    // console.log(queryId);
+    await querySchema.updateOne(
+      {queryId:queryId},
+      {$set: {status:'blocked'}}
+    );
+    // console.log("success")
+    res.status(200).json({ msg: "successfully blocked"});
+
+  } catch (error) {
+    console.error("Error blocking query:", error);
+    res.status(500).json({ msg: "error", error: error.message });
   }
 })
 app.listen(port,()=>{
