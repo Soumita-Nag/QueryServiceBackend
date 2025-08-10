@@ -229,7 +229,19 @@ app.get('/getAnsweredQueries', async (req, res) => {
     res.status(500).json({ msg: 'Error fetching answered queries', error: err });
   }
 });
-
+app.get('/getAnswers',async(req,res)=>{
+  const queryId=req.query.queryId;
+  try{
+    const result= await queryAdminSchema.find({queryId:queryId});
+    if(result.length===0){
+      res.status(404).json({msg:"Answers does not exists"});
+    }
+    res.status(200).json(result);
+  }
+  catch(err){
+    res.status(500).json({msg:"Error Fetching Answers"});
+  }
+})
 app.listen(port,()=>{
     console.log(`Server is Running at port : ${port}`);
 })
