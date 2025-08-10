@@ -77,6 +77,32 @@ app.delete('/delQuery', async (req, res) => {
     res.status(500).json({ msg: "error", error: error.message });
   }
 });
+app.delete('/delAns', async (req, res) => {
+  try {
+    const ansId=req.query.ansId;
+    const queryId=req.query.queryId;
+    console.log(ansId+" "+queryId);
+    const result= await queryAdminSchema.deleteOne({ansId:ansId});
+    if(result.deletedCount===0){
+      return res.status(404).json({msg:"Answer not found"})
+    }
+    const query = await querySchema.findOne({ queryId });
+    const newAnsCount = query.ansCount - 1;
+    await querySchema.updateOne(
+      { queryId },
+      {
+        $set: { 
+          ansCount: newAnsCount,
+          status: newAnsCount > 0 ? "success" : "pending"
+        }
+      }
+    );
+    res.status(200).json({ msg: "successfully deleted"});
+  } catch (error) {
+    console.error("Error deleting answer:", error);
+    res.status(500).json({ msg: "error", error: error.message });
+  }
+});
 app.post('/addQuery', async (req, res) => {
   try {
     console.log(req.body);
@@ -101,6 +127,7 @@ app.get('/getAllQuery', async(req,res)=>{
           return {
             ...query,
             answer: answer?.answer,
+            ansId:answer?.ansId,
             adminId: answer?.adminId,
             answerDate: answer?.date,
             answerTime: answer?.time,
@@ -129,6 +156,7 @@ app.get('/getQuery', async (req, res) => {
       return {
         ...query._doc,  
         answer: answer?.answer,
+        ansId:answer?.ansId,
         adminId: answer?.adminId,
         answerDate: answer?.date,
         answerTime: answer?.time,
@@ -144,7 +172,7 @@ app.get('/getQuery', async (req, res) => {
 });
 
 app.post('/postAnswer',async(req,res)=>{
-    // console.log(req.body);
+    console.log(req.body);
     try {
         const answer = new queryAdminSchema(req.body);
         const savedAnswer = await answer.save(); 
@@ -187,6 +215,7 @@ app.get('/getAnsweredQueries', async (req, res) => {
       return {
         ...query,
         answer: answer?.answer,
+        ansId:answer?.ansId,
         adminId: answer?.adminId,
         answerDate: answer?.date,
         answerTime: answer?.time,

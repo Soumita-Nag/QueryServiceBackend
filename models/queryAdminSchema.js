@@ -1,6 +1,7 @@
 const {default:mongoose}=require("mongoose");
 const queryAdminSchema=new mongoose.Schema({
     queryId: String,
+    ansId:String,
     adminId:String,
     answer: String,
     date: String,
