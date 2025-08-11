@@ -224,7 +224,11 @@ app.get('/getAnsweredQueries', async (req, res) => {
         answerRank: answer?.rank,
       };
     });
-
+    combined.sort((a, b) => {
+      const dateA = new Date(`${a.answerDate} ${a.answerTime}`);
+      const dateB = new Date(`${b.answerDate} ${b.answerTime}`);
+      return dateA - dateB; 
+    });
     res.status(200).json(combined);
   } catch (err) {
     console.error('Error fetching answered queries:', err);
