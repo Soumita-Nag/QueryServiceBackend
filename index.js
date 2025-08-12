@@ -42,17 +42,20 @@ app.post('/login',async(req,res)=>{
     }
 })
 app.post('/signup',async(req,res)=>{
-    const {uname,email,password,role}=req.body;
+    const {uname,email,password,seqQuestionNo,seqAns,role}=req.body;
     try{
       const result=await users.findOne({email});
       if(result){
         return res.status(400).json({msg:"User Already Exists"});
       }
       const hashPassword= await bcrypt.hash(password,SALT_ROUNDS);
+      const hashSeqAns=await bcrypt.hash(password,SALT_ROUNDS);
       const user=new users({
         uname,
         email,
         password:hashPassword,
+        seqQuestionNo,
+        seqAns:hashSeqAns,
         role
       });
       await user.save();
