@@ -289,7 +289,21 @@ app.post('/forgetPassword',async(req,res)=>{
       res.status(400).json(err);
   }
 })
-
+app.post('/resetPassword',async(req,res)=>{
+  const {email,password}=req.body;
+  try{
+    const hashPassword= await bcrypt.hash(password,SALT_ROUNDS);
+    await userSchema.updateOne(
+      {email:email},
+      {$set:{password:hashPassword}}
+    );
+    res.status(200).json({msg:"Password Reset Successfull"});
+  }
+  catch(err){
+    console.log(err);
+      res.status(400).json(err);
+  }
+})
 app.listen(port,()=>{
     console.log(`Server is Running at port : ${port}`);
 })
