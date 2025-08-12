@@ -49,7 +49,8 @@ app.post('/signup',async(req,res)=>{
         return res.status(400).json({msg:"User Already Exists"});
       }
       const hashPassword= await bcrypt.hash(password,SALT_ROUNDS);
-      const hashSeqAns=await bcrypt.hash(password,SALT_ROUNDS);
+      const normalizedSeqAns = seqAns.trim().toLowerCase();
+      const hashSeqAns=await bcrypt.hash(normalizedSeqAns,SALT_ROUNDS);
       const user=new users({
         uname,
         email,
@@ -174,7 +175,6 @@ app.get('/getQuery', async (req, res) => {
     res.status(500).json({ msg: "Failed to fetch queries", error: err });
   }
 });
-
 app.post('/postAnswer',async(req,res)=>{
     console.log(req.body);
     try {
@@ -266,6 +266,27 @@ app.get('/blockQuery',async(req,res)=>{
   } catch (error) {
     console.error("Error blocking query:", error);
     res.status(500).json({ msg: "error", error: error.message });
+  }
+})
+app.post('/forgetPassword',async(req,res)=>{
+  const {email,seqQuestionNo,seqAns}=req.body;
+  console.log(email+" "+seqQuestionNo+" "+seqAns);   
+  try{
+      const result=await users.findOne({email:email});
+      if(!result){
+        return res.status(202).json({msg:"User doesn't exist"});
+      }
+      console.log(result)
+      const normalizedSeqAns=seqAns.trim().toLowerCase();
+      const isMatch=await bcrypt.compare(normalizedSeqAns,result.seqAns);
+      const isMatch2=seqQuestionNo==result.seqQuestionNo;
+      if(!isMatch || !isMatch2){ 
+        return res.status(201).json({msg:"Invalid Credential!"});
+      }
+      res.status(200).json(result);
+  }catch(err){
+    console.log(err);
+      res.status(400).json(err);
   }
 })
 
