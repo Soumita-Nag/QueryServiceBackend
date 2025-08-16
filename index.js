@@ -41,6 +41,21 @@ app.post('/login',async(req,res)=>{
         res.status(400).json(err);
     }
 })
+app.get('/checkUser',async(req,res)=>{
+  const email=req.query.email;
+  console.log(email);
+  try{
+    const result=await users.findOne({email});
+    if(result){
+      return res.status(201).json({msg:"User Already Exists"});
+    }
+    res.status(200).json({msg:"Valid Email Id"});
+  }
+  catch(err){
+    console.error("Signup error:", err);
+    res.status(500).json({ msg: "Server error during signup", error: err.message });
+  }
+})
 app.post('/signup',async(req,res)=>{
     const {uname,email,password,seqQuestionNo,seqAns,role}=req.body;
     try{
