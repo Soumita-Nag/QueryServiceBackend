@@ -319,6 +319,21 @@ app.post('/resetPassword',async(req,res)=>{
       res.status(400).json(err);
   }
 })
+app.get('/updateSatiesfactoryRate',async(req,res)=>{
+  const {ansId,rate}=req.query;
+  console.log(rate);
+  try{
+    await queryAdminSchema.updateOne(
+      {ansId:ansId},
+      {$set:{satisfactoryRate:rate,satisfactoryRateUpdated:true}}
+    );
+    res.status(200).json({msg:"Satiesfactory Rate updated succesfully"});
+  }
+  catch(err){
+    console.log(err);
+      res.status(400).json(err);
+  }
+})
 app.listen(port,()=>{
     console.log(`Server is Running at port : ${port}`);
 })

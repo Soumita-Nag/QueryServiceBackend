@@ -1,4 +1,4 @@
-const {default:mongoose}=require("mongoose");
+const {default:mongoose}=require("mongoose");   
 const queryAdminSchema=new mongoose.Schema({
     queryId: String,
     ansId:String,
@@ -7,5 +7,7 @@ const queryAdminSchema=new mongoose.Schema({
     date: String,
     time: String,
     rank: Number,
+    satisfactoryRate:{ type: mongoose.Schema.Types.Decimal128 },
+    satisfactoryRateUpdated:Boolean,
 })
 module.exports=mongoose.model('answers',queryAdminSchema);
