@@ -213,9 +213,12 @@ app.get('/getUnAnsweredQueries',async(req,res)=>{
     const answeredQueryIds=await queryAdminSchema.distinct('queryId');
     const unAnsweredQueries=await querySchema.find(
     {queryId:{$nin:answeredQueryIds},
-     status: { $ne: 'blocked' } }
+     status: { $ne: 'blocked' }}
     )
-    res.status(200).json(unAnsweredQueries);
+    const failedQueryIds = await queryAdminSchema.distinct('queryId', { satisfactoryRate: { $lt: mongoose.Types.Decimal128.fromString('50') } });
+    const failedQueries=await querySchema.find({queryId: {$in:failedQueryIds}});
+    const result=unAnsweredQueries.concat(failedQueries);
+    res.status(200).json(result);
   }
   catch(err){
     res.status(500).json({msg:"Error fetching unanswered queries"});
@@ -225,7 +228,7 @@ app.get('/getAnsweredQueries', async (req, res) => {
   try {
     const answeredQueryIds = await queryAdminSchema.distinct('queryId');
     const queries = await querySchema.find({ queryId: { $in: answeredQueryIds },status: { $ne: 'blocked' } }).lean();
-    const answers = await queryAdminSchema.find({ queryId: { $in: answeredQueryIds } }).lean();
+    const answers = await queryAdminSchema.find({ queryId: { $in: answeredQueryIds }}).lean();
     const answerMap = {};
     for (const ans of answers) {
       answerMap[ans.queryId] = ans;
@@ -240,8 +243,10 @@ app.get('/getAnsweredQueries', async (req, res) => {
         answerDate: answer?.date,
         answerTime: answer?.time,
         answerRank: answer?.rank,
+        satisfactoryRate: answer?.satisfactoryRate,
+        satisfactoryRateUpdated: answer?.satisfactoryRateUpdated,
       };
-    });
+    }).filter(item=> item.satisfactoryRate >= 50);
     combined.sort((a, b) => {
       const dateA = new Date(`${a.answerDate} ${a.answerTime}`);
       const dateB = new Date(`${b.answerDate} ${b.answerTime}`);
