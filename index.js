@@ -215,13 +215,23 @@ app.get('/getUnAnsweredQueries',async(req,res)=>{
     {queryId:{$nin:answeredQueryIds},
      status: { $ne: 'blocked' }}
     )
-    const failedQueryIds = await queryAdminSchema.distinct('queryId', { satisfactoryRate: { $lt: mongoose.Types.Decimal128.fromString('50') } });
-    const failedQueries=await querySchema.find({queryId: {$in:failedQueryIds}});
-    const result=unAnsweredQueries.concat(failedQueries);
-    res.status(200).json(result);
+    // const failedQueryIds = await queryAdminSchema.distinct('queryId', { satisfactoryRate: { $lt: 50 } });
+    // const failedQueries=await querySchema.find({queryId: {$in:failedQueryIds}});
+    // const result=unAnsweredQueries.concat(failedQueries);
+    res.status(200).json(unAnsweredQueries);
   }
   catch(err){
     res.status(500).json({msg:"Error fetching unanswered queries"});
+  }
+})
+app.get('/unSatisfiedQueries',async(req,res)=>{
+  try{
+    const failedQueryIds = await queryAdminSchema.distinct('queryId', { satisfactoryRate: { $lt: 50 } });
+    const failedQueries=await querySchema.find({queryId: {$in:failedQueryIds}});
+    res.status(200).json(failedQueries);
+  }
+  catch(err){
+    res.status(500).json({msg:"Error fetching unSatisfied queries"});
   }
 })
 app.get('/getAnsweredQueries', async (req, res) => {

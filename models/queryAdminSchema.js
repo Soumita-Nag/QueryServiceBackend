@@ -7,7 +7,7 @@ const queryAdminSchema=new mongoose.Schema({
     date: String,
     time: String,
     rank: Number,
-    satisfactoryRate:{ type: mongoose.Schema.Types.Decimal128 },
+    satisfactoryRate:Number,
     satisfactoryRateUpdated:Boolean,
 })
 module.exports=mongoose.model('answers',queryAdminSchema);
