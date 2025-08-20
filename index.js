@@ -226,9 +226,33 @@ app.get('/getUnAnsweredQueries',async(req,res)=>{
 })
 app.get('/unSatisfiedQueries',async(req,res)=>{
   try{
-    const failedQueryIds = await queryAdminSchema.distinct('queryId', { satisfactoryRate: { $lt: 50 } });
-    const failedQueries=await querySchema.find({queryId: {$in:failedQueryIds}});
-    res.status(200).json(failedQueries);
+    const failedLatestAnswers = await queryAdminSchema.aggregate([
+    { $sort: { date: -1, time: -1 } }, 
+    {
+      $group: {
+        _id: "$queryId",
+        latestSatisfactoryRate: { $first: "$satisfactoryRate" }
+      }
+    },
+    {
+      $match: {
+        latestSatisfactoryRate: { $lt: 50 }
+      }
+    },
+    {
+      $project: {
+        queryId: "$_id",
+        _id: 0
+      }
+    }
+  ]);
+  const failedQueryIds = failedLatestAnswers.map(doc => doc.queryId);
+  const failedQueries = await querySchema.find({ queryId: { $in: failedQueryIds } });
+  res.status(200).json(failedQueries);
+
+    // const failedQueryIds = await queryAdminSchema.distinct('queryId', { satisfactoryRate: { $lt: 50 } });
+    // const failedQueries=await querySchema.find({queryId: {$in:failedQueryIds}});
+    // res.status(200).json(failedQueries);
   }
   catch(err){
     res.status(500).json({msg:"Error fetching unSatisfied queries"});
@@ -256,7 +280,8 @@ app.get('/getAnsweredQueries', async (req, res) => {
         satisfactoryRate: answer?.satisfactoryRate,
         satisfactoryRateUpdated: answer?.satisfactoryRateUpdated,
       };
-    }).filter(item=> item.satisfactoryRate >= 50);
+    })
+    // .filter(item=> item.satisfactoryRate >= 50);
     combined.sort((a, b) => {
       const dateA = new Date(`${a.answerDate} ${a.answerTime}`);
       const dateB = new Date(`${b.answerDate} ${b.answerTime}`);
