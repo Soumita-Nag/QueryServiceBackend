@@ -379,6 +379,35 @@ app.get('/updateSatiesfactoryRate',async(req,res)=>{
       res.status(400).json(err);
   }
 })
+app.get("/searchQueries", async (req, res) => {
+  try {
+    const search = req.query.searchQuery;
+    const categories = req.query.searchTag;
+    let filter = { status: { $ne: "blocked" } };
+    if (search && search.trim() !== "") {
+      filter.$or = [
+        { queryTitle: { $regex: search, $options: "i" } },
+        { query: { $regex: search, $options: "i" } },
+        { category: { $elemMatch: { $regex: search, $options: "i" } } } 
+      ];
+    }
+
+    if (categories && categories.trim() !== "") {
+      const categoryArray = categories.split(",").map(c => c.trim());
+      filter.$or = [
+        ...(filter.$or || []), 
+        { category: { $elemMatch: { $regex: categoryArray.join("|"), $options: "i" } } }
+      ];
+    }
+
+    const queries = await querySchema.find(filter).sort({ date: -1, time: -1 });
+
+    res.json(queries);
+  } catch (error) {
+    console.error("Error searching queries:", error);
+    res.status(500).json({ msg: "error", error: error.message });
+  }
+});
 app.listen(port,()=>{
     console.log(`Server is Running at port : ${port}`);
 })
