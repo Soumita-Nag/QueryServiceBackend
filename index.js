@@ -123,9 +123,14 @@ app.delete('/delAns', async (req, res) => {
     res.status(500).json({ msg: "error", error: error.message });
   }
 });
-app.post('/addQuery', async (req, res) => {
+app.post('/addQuery', async (req, res) => { 
   try {
-    console.log(req.body);
+    // console.log(req.body);
+    const newQuery=req.body.query;
+    const result=await querySchema.find({query:newQuery});
+    if(result.length!=0){
+      res.status(201).json({msg:"Duplicate Query"});
+    }
     const query = new querySchema(req.body);
     const savedQuery = await query.save(); 
     res.status(200).json({ msg: "success", data: savedQuery });
@@ -191,7 +196,7 @@ app.get('/getQuery', async (req, res) => {
   }
 });
 app.post('/postAnswer',async(req,res)=>{
-    console.log(req.body);
+    // console.log(req.body);
     try {
         const answer = new queryAdminSchema(req.body);
         const savedAnswer = await answer.save(); 
